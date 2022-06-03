@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Text, View } from "react-native";
+import { BASE_URL } from "react-native-dotenv";
 
 import {
   SafeAreaView,
@@ -23,17 +24,16 @@ export default function IngredientsScreen() {
 
   const getIngredients = async () => {
     try {
-      const url = "http://localhost:7512/config/ingredients/_search";
+      const url = `${BASE_URL}/_/ingredients`;
       const response = await fetch(url, {
-        body: JSON.stringify({ query: {} }),
-        method: "post",
+        method: "get",
         headers: {
           "Content-Type": "application/json",
         },
       });
 
       const res = await response.json();
-      setList(res.result.hits);
+      setList(res.result);
       setLoading(false);
     } catch (error) {
       console.error(error);
@@ -45,10 +45,8 @@ export default function IngredientsScreen() {
     getIngredients();
   }, []);
 
-  console.log(list);
-
   const onPressAdd = async (text: string) => {
-    const url = "http://localhost:7512/_/ingredients";
+    const url = `${BASE_URL}/_/ingredients`;
 
     await fetch(url, {
       body: JSON.stringify({ name: text, specification: "" }),
@@ -59,13 +57,11 @@ export default function IngredientsScreen() {
     });
 
     setList((previousList) => {
-      return [...previousList, { _id: text, _source: { name: text } }];
+      return [...previousList, { _id: text, name: text }];
     });
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <Item title={item._source.name} />
-  );
+  const renderItem = ({ item }: { item: any }) => <Item title={item.name} />;
 
   return (
     <View style={{ flex: 1 }}>
@@ -87,7 +83,10 @@ export default function IngredientsScreen() {
         {loading ? (
           <ActivityIndicator />
         ) : (
-          <FlatList data={list} renderItem={renderItem} />
+          <View>
+            <Text style={styles.middleTitle}>Ingredients</Text>
+            <FlatList data={list} renderItem={renderItem} />
+          </View>
         )}
       </SafeAreaView>
     </View>
@@ -109,5 +108,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
+  },
+  middleTitle: {
+    marginTop: 5,
+    fontSize: 32,
+    textAlign: "center",
   },
 });
